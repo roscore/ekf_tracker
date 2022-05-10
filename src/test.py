@@ -18,7 +18,7 @@ R = np.diag([1.0, 1.0]) ** 2 # Observation x,y position covariance
 
 # Simulation parameter
 INPUT_NOISE = np.diag([1.0, np.deg2rad(30.0)]) ** 2
-GPS_NOISE = np.diag([0.5, 0.5]) ** 2
+SENSOR_NOISE = np.diag([0.5, 0.5]) ** 2
 
 DT = 0.1 # time tick [s]
 SIM_TIME = 20.0 # simulation time [s]
@@ -33,9 +33,9 @@ def calc_input():
     
 def observation(xTrue, xd, u):
     xTrue = motion_model(xTrue, u)
-    # add noise to gps x-y
-    #z = observation_model(xTrue) + GPS_NOISE @ np.random.randn(2, 1)
-    z = observation_model(xTrue) + np.matmul(GPS_NOISE, np.random.randn(2, 1))
+    # add noise to uwb x-y
+    #z = observation_model(xTrue) + SENSOR_NOISE @ np.random.randn(2, 1)
+    z = observation_model(xTrue) + np.matmul(SENSOR_NOISE, np.random.randn(2, 1))
     
     # add noise to input
     #ud = u + INPUT_NOISE @ np.random.randn(2, 1)
