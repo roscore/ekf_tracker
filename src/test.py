@@ -2,10 +2,22 @@
 
 import rospy
 from std_msgs.msg import String
+from geometry_msgs.msg import twist ##
 
 import math
 import matplotlib.pyplot as plt
 import numpy as np
+
+rospy.init_node("predict_pedestrians_position")
+
+ros_node = rospy.Rate(100)
+
+predict_position_pub = rospy.Publisher("/predict_position", Twist, queue_size = 1) ##
+
+uwb_position_sub = rospy.Subscriber("/scan", Twist, uwb_position_callback)
+
+predict_position_msg = Twist() ##
+
 
 # Covariance for EKF simulation
 Q = np.diag([
@@ -25,7 +37,11 @@ SIM_TIME = 20.0 # simulation time [s]
 
 show_animation = True
 
-def calc_input():
+def uwb_position_callback(data):
+    print(data)
+
+
+def calc_input(): ## replace to real sensor value
     v = 1.0 # [m/s]
     yawrate = 0.1 # [rad/s]
     u = np.array([[v], [yawrate]])
@@ -161,7 +177,7 @@ def process():
     hxDR = xTrue
     hz = np.zeros((2, 1))
     while not rospy.is_shutdown():
-        while SIM_TIME >= time:
+        while SIM_TIME >= time: ## delete this part
             time += DT
             u = calc_input()
             xTrue, z, xDR, ud = observation(xTrue, xDR, u)
@@ -173,7 +189,7 @@ def process():
             hxTrue = np.hstack((hxTrue, xTrue))
             hz = np.hstack((hz, z))
             
-            if show_animation:
+            if show_animation: ## delete this part
                 plt.cla()
                 # for stopping simulation with the esc key.
                 plt.gcf().canvas.mpl_connect('key_release_event',
@@ -189,6 +205,10 @@ def process():
                 plt.axis("equal")
                 plt.grid(True)
                 plt.pause(0.001)
+
+        predict_position_pub.publish(predict_position_msg)
+        rospy.spin()    
+        ros_node.sleep()
             
             
 if __name__ == '__main__':
